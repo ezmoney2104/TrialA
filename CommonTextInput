@@ -1,0 +1,86 @@
+<template>
+  <b-form-group>
+    <label :for="item.display.label" :style="item.directives">{{ item.display.label }}:</label>
+    <b-form-input
+      :id="item.display.label"
+      v-model="textInputData"
+      :placeholder="item.display.placeholder"
+      v-bind="item.directives"
+      required
+      trim
+      @keypress="checkIfKeyIsValid($event, item.directives.type, item.data.saveAs)"
+      @change="emitValue"
+    ></b-form-input>
+  </b-form-group>
+</template>
+
+<script>
+export default {
+  name: 'CommonTextInput',
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object properties:
+     * - readOnly {Boolean} - the state of the the textfield. Textfield focused upon clicking (default=false)
+     * - type {String} - the type of the textfield
+     * @object data:
+     * - key {String} - any key reference of the textfield
+     * @object label:
+     * - value {String} - the value of the label
+     * - placeholder {String} - any short hint to the user that describes the expected value of the input field
+     */
+    item: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      textInputData: ''
+    }
+  },
+  methods: {
+    /**
+     * Check if the component data are valid based on the given regex
+     * @param {Object} event - The event object of the component
+     * @param {String} type - The data type of the component
+     * @param {String} saveAs - The name of the component as save as
+     */
+    checkIfKeyIsValid(event, type, saveAs) {
+      const regxText = /^[a-zA-Z]+$/
+      const regexNum = /^[0-9]+$/
+      const regexDecimal = /^[0-9.]+$/
+
+      if (type == 'text' && event.key != ' ' && !this.testInput(regxText, event.key)) {
+        event.preventDefault()
+      } else if (type == 'tel' && !this.testInput(regexNum, event.key)) {
+        event.preventDefault()
+      } else if (type == 'number' && saveAs == 'age' && !this.testInput(regexNum, event.key)) {
+        event.preventDefault()
+      } else if (type == 'number' && !this.testInput(regexDecimal, event.key)) {
+        event.preventDefault()
+      }
+    },
+    /**
+     * Tests the input data
+     * @param {String} regex - The regex pattern for the the text or number
+     * @param {String | Number} input - The input data from the user
+     * @return {boolean} - Returns whether the input character is valid(true) or invalid(false)
+     */
+    testInput(regex, input) {
+      return regex.test(input)
+    },
+    /**
+     * Pass the event and textinput data to the parent component Registration form
+     * @return {object} The event name, the textinput data key and data value
+     */
+    emitValue() {
+      return this.$emit('addValue', {
+        key: this.item.data.saveAs,
+        value: this.textInputData.trim()
+      })
+    }
+  }
+}
+</script>
