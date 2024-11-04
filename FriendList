@@ -1,0 +1,92 @@
+<template>
+  <div>
+    <div class="text-center mx-7">
+      <p v-if="friendlist.length === 0">You have no friends yet. Please add a friend.</p>
+    </div>
+
+    <base-card v-for="(friend, id) in friendlist" :key="id">
+      <template #card-title>
+        <h3 class="text-break">
+          {{ friend.friendData.fullname.value.toUpperCase() }}
+          <span v-if="friend.properties.isFavorite" class="text-warning"
+            >( <i class="bi bi-star-fill"></i> Favorite)</span
+          >
+        </h3>
+
+        <div class="d-flex gap-2">
+          <b-button @click="toggleDetails(id)" variant="outline-info">
+            <i :class="friend.properties.showDetails ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </b-button>
+          <b-button @click="toggleFavorite(id)" variant="outline-warning">
+            <i :class="friend.properties.isFavorite ? 'bi bi-star-fill' : 'bi bi-star outline'"></i>
+          </b-button>
+          <b-button @click="removeThisFriend(id)" variant="outline-danger">
+            <i class="bi bi-trash"></i>
+          </b-button>
+        </div>
+      </template>
+
+      <div v-if="friend.properties.showDetails" class="friend-details">
+        <ul>
+          <li v-for="(detail, key) in friend.friendData" :key="key">
+            <strong>{{ detail.label }}: </strong>
+            <span v-if="detail.label === 'Love Language'"> {{ detail.value.join(', ') }}</span>
+            <span v-else> {{ detail.value }}</span>
+          </li>
+        </ul>
+      </div>
+    </base-card>
+  </div>
+</template>
+
+<script>
+import BaseCard from '../../common/BaseCard.vue'
+export default {
+  name: 'FriendList',
+  components: {
+    BaseCard
+  },
+  props: {
+    /**
+     * Receives array of data that contains the person details
+     */
+    friendlist: {
+      type: Array,
+      required: true
+    }
+  },
+  methods: {
+    /**
+     * Toggle the showDetails value to true or false
+     * @param {int} index - Index of the specific item clicked
+     */
+    toggleDetails(index) {
+      this.friendlist[index].properties.showDetails = !this.friendlist[index].properties.showDetails
+    },
+    /**
+     * Toggle the isFavorite value to true or false
+     * @param {int} index - Index of the specific item clicked
+     */
+    toggleFavorite(index) {
+      this.friendlist[index].properties.isFavorite = !this.friendlist[index].properties.isFavorite
+    },
+    /**
+     * Remove an item from the friendlist array
+     * @param {int} index - Index of the specific item to be removed from the array
+     */
+    removeThisFriend(index) {
+      this.friendlist.splice(index, 1)
+    }
+  }
+}
+</script>
+
+<style scoped>
+.friend-details ul {
+  list-style-type: none;
+}
+
+.friend-details ul li {
+  word-wrap: break-word;
+}
+</style>
