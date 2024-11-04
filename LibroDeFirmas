@@ -1,0 +1,91 @@
+<template>
+  <b-container fluid class="mx-auto my-4 w-75">
+    <h1 class="text-center"><i class="bi bi-book"></i> Libro de Firmas</h1>
+
+    <div class="d-flex gap-3 mt-5 mb-3">
+      <div v-for="(btn, id) in Buttons" :key="id">
+        <common-button :is="btn.componentName" :key="btn.id" :item="btn" @action="switchDisplay" />
+      </div>
+    </div>
+
+    <h1 class="bg-dark text-white py-2 px-3 rounded-top">{{ heading }}</h1>
+
+    <keep-alive>
+      <registration-form
+        v-if="isFormVisible"
+        class="px-3"
+        @addFriend="pushToArrayFriends"
+      ></registration-form>
+
+      <friend-list v-else :friendlist="friends"></friend-list>
+    </keep-alive>
+  </b-container>
+</template>
+
+<script>
+import RegistrationForm from './RegistrationForm.vue'
+import FriendList from './FriendList.vue'
+import CommonButton from '@/components/common/CommonButton.vue'
+import { SWITCH_BUTTON } from '@/common/recipe/rCommonButton'
+
+export default {
+  name: 'LibroDeFirmas',
+  components: {
+    RegistrationForm,
+    FriendList,
+    CommonButton
+  },
+  data() {
+    return {
+      Buttons: [...SWITCH_BUTTON],
+      isFormVisible: false,
+      friends: []
+    }
+  },
+  computed: {
+    /**
+     * Function that determines the heading depending on the form visibility
+     * @return {string} the heading for registration form or the friend list
+     */
+    heading() {
+      return this.isFormVisible ? 'Mi Amigo Nuevo' : 'Mis Amigos'
+    }
+  },
+
+  methods: {
+    /**
+     * Changes current display by making the form visibility true or false
+     * @param {*} event - holds the event name of the button
+     */
+    switchDisplay(event) {
+      if (event == 'showForm') {
+        this.isFormVisible = true
+      } else if (event == 'showFriends') {
+        this.isFormVisible = false
+      }
+    },
+    /**
+     * Add the newly added form data to the beginning of friends array
+     * @param {object} details - The new form data that is stored to the friends array
+     */
+    pushToArrayFriends(details) {
+      if (!this.isFriendExists(details)) {
+        this.friends.unshift(...details)
+        alert('Congratulations for making a new Friend!')
+      } else {
+        alert('This person is already registered')
+      }
+    },
+    /**
+     * Check if the new email to be added is already existing in the friends array
+     * @param {object} details - The new form data that is compared to the existing array values
+     * @return {boolean} returns true if the condition is satisfied
+     */
+    isFriendExists(details) {
+      return this.friends.some(
+        (friend) => friend.friendData.email.value === details[0].friendData.email.value
+      )
+    }
+  }
+}
+</script>
