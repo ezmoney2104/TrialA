@@ -1,0 +1,139 @@
+//CommonButton
+<template>
+  <div>
+    <b-button v-bind="item.directives" @click="emitButtonAction"
+      >{{ item.display.label }}
+    </b-button>
+  </div>
+</template>
+
+<script>
+import buttonMixins from '@/common/mixins/buttonMixins'
+export default {
+  name: 'CommonButton',
+  mixins: [buttonMixins]
+}
+</script>
+
+
+//CommonRadioButton
+<template>
+  <div>
+    <label :for="item.data.label">{{ item.display.label }}:</label>
+    <b-form-radio-group
+      v-model="checked"
+      :options="item.display.options"
+      v-bind="item.directives"
+      @change="$emit('addValue', { key: this.item.data.saveAs, value: this.checked })"
+      required
+    ></b-form-radio-group>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'CommonRadioButton',
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object data:
+     * - key {String} - any key reference of the textfield
+     * - options {Array} - given array of options for the selection field
+     * @object label:
+     * - value {String} - the value of the label
+     */
+    item: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      checked: ''
+    }
+  }
+}
+</script>
+
+
+//CommonDropDown
+<template>
+  <b-form-group>
+    <label :for="item.display.label">{{ item.display.label }}:</label>
+    <b-form-select
+      v-model="selected"
+      :options="item.display.options"
+      v-bind="item.directives"
+      required
+      @change="$emit('addValue', { key: this.item.data.saveAs, value: this.selected })"
+    ></b-form-select>
+  </b-form-group>
+</template>
+
+<script>
+export default {
+  name: 'CommonDropdown',
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object data:
+     * - key {String} - any key reference of the textfield
+     * - options {Array} - given array of options for the selection field
+     * @object label:
+     * - value {String} - the value of the label
+     */
+    item: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      selected: null
+    }
+  }
+}
+</script>
+
+
+//CommonCheckBox
+<template>
+  <div>
+    <label :for="item.display.label">{{ item.display.label }}:</label>
+    <b-form-checkbox-group
+      v-model="checked"
+      :options="item.display.options"
+      v-bind="item.directives"
+      @change="$emit('addValue', { key: this.item.data.saveAs, value: this.checked })"
+    >
+    </b-form-checkbox-group>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'CommonCheckBox',
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object data:
+     * - key {String} - any key reference of the textfield
+     * - options {Array} - given array of options for the selection field
+     * @object label:
+     * - value {String} - the value of the label
+     */
+    item: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      checked: []
+    }
+  }
+}
+</script>
