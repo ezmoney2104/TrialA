@@ -1,0 +1,160 @@
+<template>
+  <b-form @submit.prevent>
+    <div v-for="(formProp, id) in formProps" :key="id">
+      <component
+        :is="formProp.componentName"
+        :key="componentKey"
+        :item="formProp"
+        @addValue="addFormData"
+        @action="validateData(formData, alertMessage)"
+      />
+    </div>
+  </b-form>
+</template>
+<script>
+import CommonTextInput from '@/components/common/CommonTextInput.vue'
+import CommonRadioButton from '@/components/common/CommonRadioButton.vue'
+import CommonDropDown from '@/components/common/CommonDropDown.vue'
+import CommonCheckBox from '@/components/common/CommonCheckbox.vue'
+import CommonTextArea from '@/components/common/CommonTextArea.vue'
+import CommonButton from '@/components/common/CommonButton.vue'
+import { TEXT_INPUT_PROPERTIES } from '../../../common/recipe/rCommonTextInput'
+import { RADIO_BUTTON_PROPERTIES } from '../../../common/recipe/rCommonRadioButton'
+import { DROPDOWN_PROPERTIES } from '../../../common/recipe/rCommonDropDown'
+import { TEXTAREA_PROPERTIES } from '../../../common/recipe/rCommonTextArea'
+import { CHECKBOX_PROPERTIES } from '../../../common/recipe/rCommonCheckBox'
+import { BUTTON_PROPERTIES } from '../../../common/recipe/rCommonButton'
+import { alertMessage, FORM_TEMPLATE } from '@/common/recipe/rRegistrationForm'
+
+export default {
+  name: 'RegistrationForm',
+  components: {
+    CommonTextInput,
+    CommonRadioButton,
+    CommonDropDown,
+    CommonTextArea,
+    CommonCheckBox,
+    CommonButton
+  },
+  emits: ['addFriend'],
+  data() {
+    return {
+      alertMessage: alertMessage,
+      formProps: [
+        ...TEXT_INPUT_PROPERTIES,
+        RADIO_BUTTON_PROPERTIES,
+        DROPDOWN_PROPERTIES,
+        TEXTAREA_PROPERTIES,
+        CHECKBOX_PROPERTIES,
+        BUTTON_PROPERTIES
+      ],
+      formData: FORM_TEMPLATE,
+      theFriends: [],
+      isError: null,
+      componentKey: 0
+    }
+  },
+  methods: {
+    /**
+     * Adding each captured child values to the formData object
+     * @param {object} data - The data from the child components
+     */
+    addFormData(data) {
+      this.formData.friendData[data.key].value = data.value
+    },
+
+    /**
+     * @param {object} friend - form data captured from each components
+     * Handles form submission
+     */
+    handleAdd(friend) {
+      this.theFriends.push(JSON.parse(JSON.stringify(friend)))
+      this.$emit('addFriend', this.theFriends)
+      this.resetForm() // resets the form
+    },
+
+    /**
+     * Function to reset all the values in the form
+     */
+    resetForm() {
+      ;(this.theFriends = []),
+        (this.componentKey += 1),
+        (this.formData = {
+          friendData: {
+            fullname: { label: 'Fullname', value: '' },
+            nickname: { label: 'Nickname', value: '' },
+            birthdate: { label: 'Birthdate', value: '' },
+            age: { label: 'Age', value: '' },
+            address: { label: 'Address', value: '' },
+            email: { label: 'Email', value: '' },
+            phoneNumber: { label: 'Phone Number', value: '' },
+            favoriteColor: { label: 'Favorite Color', value: '' },
+            favoriteFood: { label: 'Favorite Food', value: '' },
+            gender: { label: 'Gender', value: '' },
+            nativeLangauge: { label: 'Native Language', value: '' },
+            mottoInLife: { label: 'Motto in Life', value: '' },
+            loveLanguage: { label: 'Love Language', value: [] }
+          },
+          properties: {
+            showDetails: false,
+            isFavorite: false
+          }
+        })
+    },
+
+    /**
+     * Validates each data in the form
+     * @param {object} friend - form data captured from each components
+     * @param {string} alertMessage - message statements for each alert
+     * @return {boolean} - returns whether the data is true of false
+     */
+    validateData(friend, alertMessage) {
+      const namePattern = /^[A-Za-z\s]+$/ // given pattern for fullname and nickname
+      const emailPattern = /^[a-z0-9._]+@[a-z0-9.-]+\.[a-z]{2,4}$/ // given email pattern
+      const sameKeys = [
+        'address',
+        'phoneNumber',
+        'favoriteColor',
+        'favoriteFood',
+        'gender',
+        'nativeLangauge'
+      ]
+
+      const validations = {
+        fullname: (value) => value && namePattern.test(value),
+        nickname: (value) => value && namePattern.test(value),
+        birthdate: (value) => value && value >= '1924-01-01' && '2006-12-31',
+        age: (value) => value >= 18 && value <= 100 && value,
+        email: (value) => value && emailPattern.test(value),
+        mottoInLife: (value) => value,
+        loveLanguage: (value) => value.length === 3,
+        default: (value) => value
+      }
+
+      for (let [key, item] of Object.entries(friend.friendData)) {
+        const value = item.value
+        const isValid = (
+          sameKeys.includes(key) ? validations.default : validations[key] || validations.default
+        )(value)
+
+        if (!isValid) {
+          this.showAlert(alertMessage[key])
+          return false
+        }
+      }
+
+      this.isError = false
+      this.handleAdd(friend)
+      return true
+    },
+    /**
+     * Function for showing alert message
+     * @param {string} message - message statements for each error validations
+     */
+    showAlert(message) {
+      alert(message)
+      this.isError = true
+    }
+  }
+}
+</script>
