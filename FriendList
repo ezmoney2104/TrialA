@@ -1,3 +1,339 @@
+import { shallowMount } from '@vue/test-utils'
+import FriendList from '@/components/pages/Slamboo/FriendList.vue'
+
+describe('testing FriendList.vue', () => {
+  //   const friendlist = [
+  //     {
+  //       friendData: {
+  //         fullname: { label: 'Fullname', value: 'Nicole Rivera' },
+  //         nickname: { label: 'Nickname', value: 'Cole' },
+  //         birthdate: { label: 'Birthdate', value: '1998-09-15' },
+  //         age: { label: 'Age', value: '26' },
+  //         address: { label: 'Address', value: 'Makati City' },
+  //         email: { label: 'Email', value: 'sample1@gmail.com' },
+  //         phoneNumber: { label: 'Phone Number', value: '09123546287' },
+  //         favoriteColor: { label: 'Favorite Color', value: 'Blue' },
+  //         favoriteFood: { label: 'Favorite Food', value: 'Sushi' },
+  //         gender: { label: 'Gender', value: 'Female' },
+  //         nativeLangauge: { label: 'Native Language', value: 'Filipino' },
+  //         mottoInLife: { label: 'Motto in Life', value: 'Time is Gold' },
+  //         loveLanguage: {
+  //           label: 'Love Language',
+  //           value: ['Acts of service', 'Receiving gifts', 'Quality time']
+  //         }
+  //       },
+  //       properties: {
+  //         showDetails: false,
+  //         isFavorite: false
+  //       }
+  //     },
+  //     {
+  //       friendData: {
+  //         fullname: { label: 'Fullname', value: 'Jane Smith' },
+  //         nickname: { label: 'Nickname', value: 'Jan' },
+  //         birthdate: { label: 'Birthdate', value: '2000-09-15' },
+  //         age: { label: 'Age', value: '26' },
+  //         address: { label: 'Address', value: 'Makati City' },
+  //         email: { label: 'Email', value: 'sample2@gmail.com' },
+  //         phoneNumber: { label: 'Phone Number', value: '09321564789' },
+  //         favoriteColor: { label: 'Favorite Color', value: 'Black' },
+  //         favoriteFood: { label: 'Favorite Food', value: 'Ramen' },
+  //         gender: { label: 'Gender', value: 'Female' },
+  //         nativeLangauge: { label: 'Native Language', value: 'English' },
+  //         mottoInLife: { label: 'Motto in Life', value: 'Sample motto' },
+  //         loveLanguage: {
+  //           label: 'Love Language',
+  //           value: ['Acts of service', 'Receiving gifts', 'Quality time']
+  //         }
+  //       },
+  //       properties: {
+  //         showDetails: false,
+  //         isFavorite: false
+  //       }
+  //     }
+  //   ]
+
+  const wrapper = shallowMount(FriendList, {
+    props: {
+      friendlist: [
+        {
+          friendData: {
+            fullname: { label: 'Fullname', value: 'Nicole Rivera' },
+            nickname: { label: 'Nickname', value: 'Cole' },
+            birthdate: { label: 'Birthdate', value: '1998-09-15' },
+            age: { label: 'Age', value: '26' },
+            address: { label: 'Address', value: 'Makati City' },
+            email: { label: 'Email', value: 'sample1@gmail.com' },
+            phoneNumber: { label: 'Phone Number', value: '09123546287' },
+            favoriteColor: { label: 'Favorite Color', value: 'Blue' },
+            favoriteFood: { label: 'Favorite Food', value: 'Sushi' },
+            gender: { label: 'Gender', value: 'Female' },
+            nativeLangauge: { label: 'Native Language', value: 'Filipino' },
+            mottoInLife: { label: 'Motto in Life', value: 'Time is Gold' },
+            loveLanguage: {
+              label: 'Love Language',
+              value: ['Acts of service', 'Receiving gifts', 'Quality time']
+            }
+          },
+          properties: {
+            showDetails: false,
+            isFavorite: false
+          }
+        },
+        {
+          friendData: {
+            fullname: { label: 'Fullname', value: 'Jane Smith' },
+            nickname: { label: 'Nickname', value: 'Jan' },
+            birthdate: { label: 'Birthdate', value: '2000-09-15' },
+            age: { label: 'Age', value: '26' },
+            address: { label: 'Address', value: 'Makati City' },
+            email: { label: 'Email', value: 'sample2@gmail.com' },
+            phoneNumber: { label: 'Phone Number', value: '09321564789' },
+            favoriteColor: { label: 'Favorite Color', value: 'Black' },
+            favoriteFood: { label: 'Favorite Food', value: 'Ramen' },
+            gender: { label: 'Gender', value: 'Female' },
+            nativeLangauge: { label: 'Native Language', value: 'English' },
+            mottoInLife: { label: 'Motto in Life', value: 'Sample motto' },
+            loveLanguage: {
+              label: 'Love Language',
+              value: ['Acts of service', 'Receiving gifts', 'Quality time']
+            }
+          },
+          properties: {
+            showDetails: false,
+            isFavorite: false
+          }
+        }
+      ]
+    }
+  })
+
+  test('renders a message when friendlist is empty', () => {
+    expect(wrapper.text()).toContain('You have no friends yet. Please add a friend.')
+  })
+
+  //   test('toggles details when toggleDetails is called', () => {
+  //     const friends = [
+  //       {
+  //         friendData: { fullname: { value: 'John Doe' } },
+  //         properties: { isFavorite: false, showDetails: false }
+  //       }
+  //     ]
+
+  //     // Set props for friendlist
+  //     wrapper.setProps({ friendlist: friends })
+
+  //     // Assert initial state
+  //     expect(wrapper.vm.friendlist[0].properties.showDetails).toBe(false)
+
+  //     // Call the method directly
+  //     wrapper.vm.toggleDetails(0)
+
+  //     // Assert updated state
+  //     expect(wrapper.vm.friendlist[0].properties.showDetails).toBe(true)
+  //   })
+
+  //   test('toggles favorite status when toggleFavorite is called', () => {
+  //     const friends = [
+  //       {
+  //         friendData: { fullname: { value: 'John Doe' } },
+  //         properties: { isFavorite: false, showDetails: false }
+  //       }
+  //     ]
+
+  //     // Set props for friendlist
+  //     wrapper.setProps({ friendlist: friends })
+
+  //     // Assert initial state
+  //     expect(wrapper.vm.friendlist[0].properties.isFavorite).toBe(false)
+
+  //     // Call the method directly
+  //     wrapper.vm.toggleFavorite(0)
+
+  //     // Assert updated state
+  //     expect(wrapper.vm.friendlist[0].properties.isFavorite).toBe(true)
+  //   })
+
+  //   test('removes a friend when removeThisFriend is called', () => {
+  //     const friends = [
+  //       {
+  //         friendData: { fullname: { value: 'John Doe' } },
+  //         properties: { isFavorite: false, showDetails: false }
+  //       }
+  //     ]
+
+  //     // Set props for friendlist
+  //     wrapper.setProps({ friendlist: friends })
+
+  //     // Assert initial length
+  //     expect(wrapper.vm.friendlist.length).toBe(1)
+
+  //     // Call the method directly
+  //     wrapper.vm.removeThisFriend(0)
+
+  //     // Assert updated length
+  //     expect(wrapper.vm.friendlist.length).toBe(0)
+  //   })
+
+  test('should toggle favourite details when button is clicked', () => {
+    // const button = wrapper.find('b.button.outline-info')
+    // await button.trigger('click')
+
+    wrapper.vm.toggleFavorite(0)
+
+    expect(wrapper.vm.friendlist[0].isFavorite).toBeTruthy()
+
+    // await button.trigger('click')
+    // expect(mockKaibigans[0].isFavorite).toBe(false)
+  })
+
+  test('should toggle details when button is clicked', async () => {
+    const button = wrapper.find('#show')
+    await button.trigger('click')
+    expect(mockKaibigans[0].activeKaibigan).toBe(true)
+
+    await button.trigger('click')
+    expect(mockKaibigans[0].activeKaibigan).toBe(false)
+  })
+
+  test('should emit removebtn event when remove button is clicked', async () => {
+    const confirmSpy = jest.spyOn(window, 'confirm').mockImplementation(() => true)
+    const removeButton = wrapper.find('#remove')
+
+    await removeButton.trigger('click')
+
+    expect(confirmSpy).toHaveBeenCalledWith('Kabigan will be removed, Procced?')
+    expect(wrapper.emitted().removebtn).toBeTruthy()
+    expect(wrapper.emitted().removebtn[0]).toEqual([0]) // Check if the correct index is emitted
+
+    confirmSpy.mockRestore()
+  })
+
+  //   test('renders the list of friends correctly', () => {
+  //     // const wrapper = shallowMount(FriendList, {
+  //     //   data() {
+  //     //     return {
+  //     //       friendlist: []
+  //     //     }
+  //     //   }
+  //     // })
+
+  //     const friends = [
+  //       {
+  //         friendData: {
+  //           fullname: { label: 'Fullname', value: 'Nicole Rivera' },
+  //           nickname: { label: 'Nickname', value: 'Cole' },
+  //           birthdate: { label: 'Birthdate', value: '1998-09-15' },
+  //           age: { label: 'Age', value: '26' },
+  //           address: { label: 'Address', value: 'Makati City' },
+  //           email: { label: 'Email', value: 'sample1@gmail.com' },
+  //           phoneNumber: { label: 'Phone Number', value: '09123546287' },
+  //           favoriteColor: { label: 'Favorite Color', value: 'Blue' },
+  //           favoriteFood: { label: 'Favorite Food', value: 'Sushi' },
+  //           gender: { label: 'Gender', value: 'Female' },
+  //           nativeLangauge: { label: 'Native Language', value: 'Filipino' },
+  //           mottoInLife: { label: 'Motto in Life', value: 'Time is Gold' },
+  //           loveLanguage: {
+  //             label: 'Love Language',
+  //             value: ['Acts of service', 'Receiving gifts', 'Quality time']
+  //           }
+  //         },
+  //         properties: {
+  //           showDetails: false,
+  //           isFavorite: false
+  //         }
+  //       },
+  //       {
+  //         friendData: {
+  //           fullname: { label: 'Fullname', value: 'Jane Smith' },
+  //           nickname: { label: 'Nickname', value: 'Jan' },
+  //           birthdate: { label: 'Birthdate', value: '2000-09-15' },
+  //           age: { label: 'Age', value: '26' },
+  //           address: { label: 'Address', value: 'Makati City' },
+  //           email: { label: 'Email', value: 'sample2@gmail.com' },
+  //           phoneNumber: { label: 'Phone Number', value: '09321564789' },
+  //           favoriteColor: { label: 'Favorite Color', value: 'Black' },
+  //           favoriteFood: { label: 'Favorite Food', value: 'Ramen' },
+  //           gender: { label: 'Gender', value: 'Female' },
+  //           nativeLangauge: { label: 'Native Language', value: 'English' },
+  //           mottoInLife: { label: 'Motto in Life', value: 'Sample motto' },
+  //           loveLanguage: {
+  //             label: 'Love Language',
+  //             value: ['Acts of service', 'Receiving gifts', 'Quality time']
+  //           }
+  //         },
+  //         properties: {
+  //           showDetails: false,
+  //           isFavorite: false
+  //         }
+  //       }
+  //     ]
+
+  //     // wrapper.vm.friendlist = [...friends]
+  //     wrapper.setProps({ friendlist: friends })
+  //     // wrapper.setData({ friendlist: friends })
+  //     const friendTitles = wrapper.findAll('h3.text-break')
+  //     expect(friendTitles[0].text()).toBe('NICOLE RIVERa')
+  //     expect(friendTitles[1].text()).toBe('JANE SMITH')
+  //   })
+
+  //   test('toggles details when toggleDetails is called', () => {
+  //     const friends = [
+  //       {
+  //         friendData: { fullname: { value: 'John Doe' } },
+  //         properties: { isFavorite: false, showDetails: false }
+  //       }
+  //     ]
+
+  //     // wrapper.setProps({ friendlist: friends })
+
+  //     wrapper.vm.friendlist.push(friends)
+
+  //     // expect(wrapper.vm.friendlist[0].properties.showDetails).toBe(false)
+  //     wrapper.vm.toggleDetails(0)
+  //     expect(wrapper.vm.friendlist[0].properties[showDetails]).toBe(true)
+  //   })
+
+  //   test('toggles favorite status when toggleFavorite is called', () => {
+  //     const friends = [
+  //       {
+  //         friendData: { fullname: { value: 'John Doe' } },
+  //         properties: { isFavorite: false, showDetails: false }
+  //       }
+  //     ]
+  //     wrapper.setProps({ friendlist: friends })
+  //     expect(wrapper.vm.friendlist[0].properties.isFavorite).toBe(false)
+  //     wrapper.vm.toggleFavorite(0)
+  //     expect(wrapper.vm.friendlist[0].properties.isFavorite).toBe(true)
+  //   })
+
+  //   test('removes a friend when removeThisFriend is called', () => {
+  //     const wrapper = shallowMount(FriendList, {
+  //       data() {
+  //         return {
+  //           friendlist: []
+  //         }
+  //       }
+  //     })
+  //     const friends = [
+  //       {
+  //         friendData: { fullname: { value: 'John Doe' } },
+  //         properties: { isFavorite: false, showDetails: false }
+  //       }
+  //     ]
+  //     wrapper.vm.friendlist(friends)
+
+  //     // wrapper.setProps({ friendlist: friends })
+  //     expect(wrapper.vm.friendlist.length).toBe(1)
+
+  //     wrapper.vm.removeThisFriend(0)
+  //     expect(wrapper.vm.friendlist.length).toBe(0)
+  //   })
+})
+
+
+/////////////////
+
 <template>
   <div>
     <div class="text-center mx-7">
