@@ -1,0 +1,404 @@
+// BMI
+
+<template>
+  <b-container class="my-5">
+    <h1 class="text-center">{{ heading }}</h1>
+
+    <BMIForm :formValues="formValues" :componentKey="componentKey"></BMIForm>
+
+    <div class="d-inline-flex flex-wrap px-2 my-4" v-for="(btn, id) in buttons" :key="id">
+      <common-button
+        :is="btn.componentName"
+        :key="id"
+        :item="btn"
+        :disabled="btn.directives.disabled"
+        @action="getButtonFunction($event, btn)"
+      ></common-button>
+    </div>
+
+    <b-alert v-model="showComparison" dismissible variant="info" @dismissed="dissmissAlert">{{
+      comparisonMessage
+    }}</b-alert>
+
+    <BMIComparison v-show="showComparison" :bmiResults="bmiResults"></BMIComparison>
+  </b-container>
+</template>
+
+<script>
+import BMIForm from './BMIForm.vue'
+import BMIComparison from './BMIComparison.vue'
+import CommonButton from '@/components/common/CommonButton.vue'
+import { BMI_BUTTONS } from '@/common/recipe/rBMIButton'
+import { BMI_FORM_TEMPLATE, BMI_RESULTS } from '@/common/recipe/rBMI'
+
+export default {
+  name: 'BMIConverter',
+  components: {
+    BMIForm,
+    BMIComparison,
+    CommonButton
+  },
+  data() {
+    return {
+      buttons: [...BMI_BUTTONS],
+      heading: 'BMI COMPARISON',
+      showComparison: false,
+      formValues: { ...JSON.parse(JSON.stringify(BMI_FORM_TEMPLATE)) },
+      bmiResults: { ...JSON.parse(JSON.stringify(BMI_RESULTS)) },
+      comparisonMessage: '',
+      componentKey: 0,
+      isComputed: false
+    }
+  },
+  methods: {
+    /**
+     * Triggered when a button is clicked, and determines which functionality to execute
+     * @param {String} action - the action name of the button
+     * @returns {Function} Alert method when validation is not satisfied, and function for executing specific action
+     */
+    getButtonFunction(action, btn) {
+      if (!this.validateForm()) {
+        return this.showAlert(
+          'Complete the details, special characters, 0 value or negative values are not accepted'
+        )
+      }
+
+      const actionMap = {
+        compute: () => !this.isComputed && this.computeBMI(btn),
+        compare: () =>
+          this.isComputed ? this.compareBMI() : alert('You need to compute the values first'),
+        reset: () => this.isComputed && this.resetForm()
+      }
+
+      const executeAction = actionMap[action]
+
+      if (executeAction) {
+        return executeAction()
+      } else {
+        alert('Your action is invalid')
+      }
+    },
+
+    /**
+     * Validates the form which checks if the input fields are not empty
+     * @returns {Boolean} whether the input fields has values and satisfy given conditions
+     */
+    validateForm() {
+      const regxText = /^[a-zA-Z\s]+$/ // pattern for text
+
+      return (
+        this.formValues.person1.name &&
+        regxText.test(this.formValues.person1.name) &&
+        this.formValues.person1.weight &&
+        this.formValues.person1.height &&
+        this.formValues.person2.name &&
+        regxText.test(this.formValues.person2.name) &&
+        this.formValues.person2.weight &&
+        this.formValues.person2.height &&
+        this.formValues.person1.weight > 0 &&
+        this.formValues.person1.height > 20 &&
+        this.formValues.person1.weight > 0 &&
+        this.formValues.person2.height > 20
+      )
+    },
+    /**
+     * Propmts an alert message
+     * @param {String} message - text for alert message
+     */
+    showAlert(message) {
+      alert(message)
+    },
+    /**
+     * Computes the BMI of each person, also displays the result in the console
+     * @returns {Function} alert message when computing of BMI encounters an error
+     */
+    computeBMI() {
+      const personData = Object.values(this.formValues)
+
+      const compute = personData.map((value, index) => {
+        const bmi = value.weight / (value.height / 100) ** 2
+        let classification = ''
+
+        if (bmi < 18.5) {
+          classification = 'Underweight'
+        } else if (bmi >= 18.5 && bmi < 24.9) {
+          classification = 'Normal weight'
+        } else if (bmi >= 24.9 && bmi <= 29.9) {
+          classification = 'Overweight'
+        } else {
+          classification = ' Obese'
+        }
+
+        let newPerson = { ...value, bmi: bmi.toFixed(2) }
+
+        console.log(`Result of Person ${index + 1}: `, newPerson)
+
+        // Calls the setBMIResults function and pass arguments
+        this.setBMIResults(index, value.name, bmi, classification)
+      })
+
+      if (!compute) {
+        return alert('Error in computing')
+      }
+
+      this.isComputed = true
+
+      // Calls toggleDisable function
+      this.toggleDisable('reset')
+
+      this.showAlert('Check the console for the results.')
+    },
+
+    /**
+     * Compares the BMI results, and set the message for variable comparisonMessage
+     */
+    compareBMI() {
+      const bmiResults = this.bmiResults
+      const person1 = bmiResults.person1
+      const person2 = bmiResults.person2
+
+      this.comparisonMessage =
+        person1.bmi > person2.bmi
+          ? `${person1.name} has greater BMI of ${person1.bmi} - ${person1.classification}`
+          : person2.bmi > person1.bmi
+            ? `${person2.name} has greater BMI of ${person2.bmi} - ${person2.classification}`
+            : `${person1.name} and ${person2.name} has the same BMI of ${person1.bmi} - ${person1.classification}`
+
+      this.showComparison = true
+    },
+
+    /**
+     * Sets the BMI Results
+     * @param {Number} index - The index of each person
+     * @param {String} name - The name of each person
+     * @param {Float} bmi - The bmi result of each person
+     * @param {String} classification - The bmi clasification for each person
+     */
+    setBMIResults(index, name, bmi, classification) {
+      const bmiResults = Object.values(this.bmiResults)
+
+      bmiResults[index].name = name
+      bmiResults[index].bmi = parseFloat(bmi).toFixed(2)
+      bmiResults[index].classification = classification
+    },
+
+    /**
+     * Sets the Comparison Message depending on the given specific conditions
+     */
+    setComparisionMessage() {
+      const bmiResults = this.bmiResults
+      const person1 = bmiResults.person1
+      const person2 = bmiResults.person2
+
+      const bmi1 = person1.bmi
+      const bmi2 = person2.bmi
+
+      if (bmi1 > bmi2) {
+        this.comparisonMessage = `${person1.name} has greater BMI of ${bmi1} - ${person1.classification}`
+      } else if (bmi2 > bmi1) {
+        this.comparisonMessage = `${person2.name} has greater BMI of ${bmi2} - ${person2.classification}`
+      } else {
+        this.comparisonMessage = `${person1.name} and ${person2.name} has the same BMI of ${bmi1} - ${person1.classification}`
+      }
+    },
+
+    /**
+     * Changes the value for showComparison variable
+     */
+    dissmissAlert() {
+      this.showComparison = false
+    },
+
+    /**
+     * Resets the form
+     */
+    resetForm() {
+      this.showComparison = false
+      this.isComputed = false
+      this.componentKey += 1
+      this.formValues = { ...JSON.parse(JSON.stringify(BMI_FORM_TEMPLATE)) }
+      this.bmiResults = { ...JSON.parse(JSON.stringify(BMI_RESULTS)) }
+
+      // Calls toggleDisable function
+      this.toggleDisable('compute')
+    },
+
+    /**
+     * Toggles the disable property for the buttons
+     * @param {String} btnName - the button name received
+     */
+    toggleDisable(btnName) {
+      const btns = Object.values(this.buttons)
+
+      if (btnName === 'compute') {
+        btns.map((btn) => {
+          if (btn.events.actionName === 'compute') {
+            btn.directives.disabled = false
+          }
+
+          if (btn.events.actionName === 'reset') {
+            btn.directives.disabled = true
+          }
+        })
+      } else if (btnName === 'reset') {
+        btns.map((btn) => {
+          if (btn.events.actionName === 'compute') {
+            btn.directives.disabled = true
+          }
+
+          if (btn.events.actionName === 'reset') {
+            btn.directives.disabled = false
+          }
+        })
+      }
+    }
+  }
+}
+</script>
+
+
+// BMIComparison
+
+<template>
+  <div>
+    <h4>Comparing the two Persons</h4>
+    <b-card-group deck>
+      <b-card class="mb-3" v-for="(person, index) in bmiResults" :key="index">
+        <b-card-text>
+          <h3>{{ person.name }}</h3>
+          <ul>
+            <li>
+              <strong>BMI:</strong> <i>{{ person.bmi }}</i>
+            </li>
+            <li><strong>BMI Classification:</strong> {{ person.classification }}</li>
+          </ul>
+        </b-card-text>
+      </b-card>
+    </b-card-group>
+  </div>
+</template>
+
+<script>
+import BaseCard from '@/components/common/BaseCard.vue'
+export default {
+  components: { BaseCard },
+  name: 'BMIResults',
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object data:
+     * - key {String} - any key reference of the textfield
+     */
+    bmiResults: {
+      type: Object,
+      required: true
+    }
+  }
+}
+</script>
+
+<style scoped>
+ul {
+  list-style: none;
+}
+</style>
+
+// BMIForm
+
+<template>
+  <b-form @submit.prevent>
+    <base-card v-for="personIndex in 2" :key="personIndex">
+      <h2>Person {{ personIndex }}</h2>
+      <b-row class="d-flex flex-wrap justify-content-around">
+        <b-col cols="12" sm="auto" v-for="(formComponent, id) in formComponents" :key="id">
+          <common-text-input
+            :is="formComponent"
+            :key="componentKey"
+            :item="formComponent"
+            v-model="this.formValues"
+            @addValue="addFormData($event, personIndex)"
+          />
+        </b-col>
+      </b-row>
+    </base-card>
+  </b-form>
+</template>
+
+<script>
+import CommonTextInput from '@/components/common/CommonTextInput.vue'
+import { BMI_FORM_PROPERTIES } from '@/common/recipe/rBMITextInput'
+
+export default {
+  name: 'BMIForm',
+  components: {
+    CommonTextInput
+  },
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object data:
+     * - key {String} - any key reference of the textfield
+     */
+    formValues: {
+      type: Object,
+      required: true
+    },
+
+    /**
+     * Receives the number value of component
+     */
+    componentKey: {
+      type: Number,
+      required: true
+    }
+  },
+  data() {
+    return {
+      formComponents: [...BMI_FORM_PROPERTIES]
+    }
+  },
+  methods: {
+    /**
+     * Adds the input values
+     * @param {Object} personDetails - data of the person
+     * @param {Number} personIndex - index for each person
+     * @return {Object} added values of the person
+     */
+    addFormData(personDetails, personIndex) {
+      let field = this.formValues[`person${personIndex}`]
+      return (field[personDetails.key] = personDetails.value)
+    }
+  }
+}
+</script>
+
+// rBMI
+const BMI_RESULTS = {
+  person1: {
+    name: '',
+    bmi: '',
+    classification: ''
+  },
+  person2: {
+    name: '',
+    bmi: '',
+    classification: ''
+  }
+}
+
+const BMI_FORM_TEMPLATE = {
+  person1: {
+    name: '',
+    weight: '',
+    height: ''
+  },
+  person2: {
+    name: '',
+    weight: '',
+    height: ''
+  }
+}
+
+export { BMI_FORM_TEMPLATE, BMI_RESULTS }
