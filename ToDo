@@ -1,0 +1,493 @@
+//ToDoApp
+
+<template>
+  <b-container class="my-5">
+    <div class="d-block text-center">
+      <h1>TO DO</h1>
+
+      <b-alert v-model="showAlert" dismissible variant="warning" @dismissed="dismissAlert">{{
+        alertMessage
+      }}</b-alert>
+
+      <b-form @submit.prevent>
+        <b-row class="d-flex flex-wrap justify-content-center gap-3">
+          <b-col cols="12" sm="auto" class="w-75">
+            <span v-for="taskInput in TaskTextInput" :key="taskInput">
+              <to-do-text-input
+                :is="taskInput.componentName"
+                :key="componentKey"
+                :item="taskInput"
+                v-model="newTask"
+                @addValue="addNewTask"
+              />
+            </span>
+          </b-col>
+
+          <b-col cols="12" sm="auto" v-for="addBtn in addButton" :key="addBtn">
+            <common-button
+              :is="addBtn.componentName"
+              :key="addBtn.id"
+              :item="addBtn"
+              @action="validate"
+            />
+          </b-col>
+        </b-row>
+      </b-form>
+
+      <b-row class="d-inline-flex flex-wrap px-2 my-4" v-for="(btn, index) in buttons" :key="index">
+        <common-button
+          :is="btn.componentName"
+          :key="index"
+          :item="btn"
+          @action="getButtonFunction"
+        />
+      </b-row>
+    </div>
+
+    <to-do-list :tasks="tasks" @deleteTask="deleteTask"></to-do-list>
+
+    <b-modal
+      ref="faqs-modal"
+      scrollable
+      hide-footer
+      header-bg-variant="info"
+      size="lg"
+      centered
+      no-close-on-backdrop
+      title="FAQs"
+    >
+      <b-row v-for="(faqsItem, id) in FAQs" :key="id" class="mx-2">
+        <base-card>
+          <template #card-title>
+            <strong>{{ id + 1 }}. {{ faqsItem.display.label }}</strong>
+          </template>
+
+          <span>{{ faqsItem.display.description }}</span>
+        </base-card>
+      </b-row>
+    </b-modal>
+  </b-container>
+</template>
+
+<script>
+import ToDoList from './ToDoList.vue'
+import CommonButton from '@/components/common/CommonButton.vue'
+import CommonTextInput from '@/components/common/CommonTextInput.vue'
+import ToDoTextInput from '@/components/common/ToDoTextInput.vue'
+import { TASK_TEXTINPUT, ADD_BUTTON, TO_DO_BUTTONS, NEW_TASK } from '@/common/recipe/rToDo'
+import { TO_DO_FAQS } from '@/common/recipe/rToDoListFAQs'
+import BaseCard from '../../common/BaseCard.vue'
+
+export default {
+  name: 'TodoApp',
+  components: {
+    CommonButton,
+    ToDoList,
+    ToDoTextInput,
+    CommonTextInput,
+    BaseCard
+  },
+  data() {
+    return {
+      FAQs: [...TO_DO_FAQS],
+      TaskTextInput: [...TASK_TEXTINPUT],
+      newTask: { ...JSON.parse(JSON.stringify(NEW_TASK)) },
+      addButton: { ADD_BUTTON },
+      buttons: [...TO_DO_BUTTONS],
+      tasks: [],
+      componentKey: 0,
+      showFAQs: false,
+      showAlert: false,
+      alertMessage: ''
+    }
+  },
+  methods: {
+    /**
+     * Validates if the input field value is valid
+     */
+    validate() {
+      if (this.newTask.taskContent === '') {
+        this.showAlertMessage('No Added Task. Please input something on the textfield.')
+        this.dismissAlert()
+      } else {
+        this.addNewTaskToTasksArray()
+      }
+    },
+    /**
+     * Triggered when a button is clicked, and determines which functionality to execute
+     * @param {String} action - the action name of the button specific action
+     */
+    getButtonFunction(action) {
+      const tasksArray = this.tasks
+      const doneTasks = tasksArray.filter((task) => task.done)
+
+      const actionMap = {
+        showFAQs: () => this.$refs['faqs-modal'].show(),
+        clearAllCompleted: () =>
+          doneTasks.length > 0 ? this.clearAllCompleted() : alert('There is no done tasks yet'),
+        clearAll: () =>
+          tasksArray.length > 0 ? this.clearAll() : alert('There is no existing task to clear')
+      }
+
+      const executeAction = actionMap[action]
+      if (executeAction) {
+        executeAction()
+      } else {
+        alert('Invalid action')
+      }
+    },
+    /**
+     * Sets the taskContent to the value of newly added input field value
+     * @param {Object} taskDetails - the object data captured from the child component
+     */
+    addNewTask(taskDetails) {
+      this.newTask.taskContent = taskDetails.value
+    },
+    /**
+     * Adds the new task to the tasks array
+     */
+    addNewTaskToTasksArray() {
+      const tasksArray = this.tasks
+      tasksArray.push(this.newTask)
+
+      this.componentKey += 1
+      this.newTask = { ...JSON.parse(JSON.stringify(NEW_TASK)) }
+
+      this.showAlertMessage('New task added successfully!')
+      this.dismissAlert()
+    },
+    /**
+     * Deletes the specific task from the tasks array
+     * @param {Number} taskID - id of the particular task
+     */
+    deleteTask(taskID) {
+      const confirmation = confirm('Are you sure you want to continue?')
+
+      if (confirmation) {
+        this.tasks.splice(taskID, 1)
+        this.showAlertMessage('A task has been deleted.')
+        this.dismissAlert()
+      }
+    },
+    /**
+     * Removes all the elements and values contained in the tasks array
+     * @return {Array} The empty tasks array
+     */
+    clearAll() {
+      const confirmation = confirm('Are you sure you want to continue?')
+
+      if (confirmation) {
+        const tasksArray = this.tasks
+
+        while (tasksArray.length > 0) {
+          tasksArray.pop()
+        }
+
+        this.showAlertMessage('All tasks deleted!')
+        this.dismissAlert()
+      }
+    },
+    /**
+     * Removes all the done tasks in the tasks array
+     */
+    clearAllCompleted() {
+      const confirmation = confirm('Are you sure you want to continue?')
+
+      if (confirmation) {
+        const tasksArray = this.tasks
+        this.tasks = tasksArray.filter((task) => !task.done)
+
+        this.showAlertMessage('All completed tasks are cleared!')
+        this.dismissAlert()
+      }
+    },
+    /**
+     * Shows the alert info
+     * @param {String} message - The alert message according to the action done
+     */
+    showAlertMessage(message) {
+      this.alertMessage = message
+      this.showAlert = true
+    },
+    /**
+     * Hides the alert info, sets the alertMessage value to empty string
+     */
+    dismissAlert() {
+      setTimeout(() => {
+        this.alertMessage = ''
+        this.showAlert = false
+      }, 2000)
+    }
+  }
+}
+</script>
+
+<style></style>
+
+
+//Task
+<template>
+  <div class="task-container mb-3">
+    <span>
+      <input class="form-check-input shadow-sm" type="checkbox" v-model="task.done" />
+    </span>
+    <span class="text-break task-content">
+      <span :style="setTaskStyle(task)">{{ task.taskContent }}</span
+      ><br />
+    </span>
+    <span v-for="deleteBtn in deleteButton" :key="deleteBtn.id">
+      <common-button
+        :is="deleteBtn.componentName"
+        :key="deleteBtn.id"
+        :item="deleteBtn"
+        @action="deleteTask"
+      />
+    </span>
+  </div>
+</template>
+
+<script>
+import CommonButton from '@/components/common/CommonButton.vue'
+import { DELETE_BUTTON } from '@/common/recipe/rToDo'
+export default {
+  name: 'Task',
+  components: {
+    CommonButton
+  },
+  /**
+   * @description
+   * Receives object of data
+   * @object data:
+   * - taskContent {String} - text value of the task
+   * - done {Boolean} - whether the task is done(true) or not(false)
+   */
+  props: {
+    task: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      deleteButton: { DELETE_BUTTON }
+    }
+  },
+  methods: {
+    /**
+     * Emits an event
+     */
+    deleteTask() {
+      this.$emit('delete-task')
+    },
+    /**
+     * Triggers the text decoration when the task done status is true
+     * @param {Object} taskDetails - The object data of the task
+     * @returns {Object} Returns the style attribute
+     */
+    setTaskStyle(taskDetails) {
+      return {
+        textDecoration: taskDetails.done ? 'line-through' : 'none'
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.task-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4;
+
+  height: auto;
+  padding: 7px 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #eef8fd;
+}
+
+.task-content {
+  padding: 0 10px;
+  flex: 1;
+}
+
+.form-check-input {
+  cursor: pointer;
+}
+</style>
+
+
+// ToDoList
+<template>
+  <b-row>
+    <span v-if="tasks.length === 0" class="text-center"> You haven't added new task yet! </span>
+
+    <span v-else v-for="(task, id) in tasks" :key="id">
+      <task :task="task" @delete-task="deleteTask(id)" />
+    </span>
+  </b-row>
+</template>
+
+<script>
+import Task from './Task.vue'
+export default {
+  name: 'ToDoList',
+  components: {
+    Task
+  },
+  /**
+   * @description
+   * Receives an array of data
+   * @array data:
+   * - taskContent {String} - text value of the task
+   * - done {Boolean} - whether the task is done(true) or not(false)
+   */
+  props: {
+    tasks: {
+      type: Array,
+      required: true
+    }
+  },
+  methods: {
+    /**
+     * Emits the event and value
+     * @param {Number} taskID - The task id
+     */
+    deleteTask(taskID) {
+      this.$emit('deleteTask', taskID)
+    }
+  }
+}
+</script>
+
+//rToDo
+
+// Array of object for text input field
+const TASK_TEXTINPUT = [
+  {
+    componentName: 'ToDoTextInput',
+    data: {
+      saveAs: 'taskContent'
+    },
+    directives: {
+      type: 'text',
+      maxlength: 60,
+      readOnly: false
+    },
+    display: {
+      placeholder: 'Write a task..'
+    },
+    events: {}
+  }
+]
+
+// Object for Add button
+const ADD_BUTTON = {
+  componentName: 'CommonButton',
+  directives: {
+    variant: 'success'
+  },
+  display: {
+    label: 'Add'
+  },
+  events: {
+    actionName: 'add'
+  }
+}
+
+// Object for Delete Button
+const DELETE_BUTTON = {
+  componentName: 'CommonButton',
+  directives: {
+    variant: 'danger'
+  },
+  display: {
+    label: 'Delete'
+  },
+  events: {
+    actionName: 'delete'
+  }
+}
+
+// Array of objects for Buttons for FAQs, Clearing all completed task, and Clearing all the existing tasks
+const TO_DO_BUTTONS = [
+  {
+    componentName: 'CommonButton',
+    directives: {
+      variant: 'info'
+    },
+    display: {
+      label: 'FAQs'
+    },
+    events: {
+      actionName: 'showFAQs'
+    }
+  },
+  {
+    componentName: 'CommonButton',
+    directives: {
+      variant: 'secondary'
+    },
+    display: {
+      label: 'Clear all completed'
+    },
+    events: {
+      actionName: 'clearAllCompleted'
+    }
+  },
+  {
+    componentName: 'CommonButton',
+    directives: {
+      variant: 'danger'
+    },
+    display: {
+      label: 'Clear All'
+    },
+    events: {
+      actionName: 'clearAll'
+    }
+  }
+]
+
+// Template for the new task
+const NEW_TASK = {
+  taskContent: '',
+  done: false
+}
+
+export { TASK_TEXTINPUT, NEW_TASK, ADD_BUTTON, TO_DO_BUTTONS, DELETE_BUTTON }
+
+// rToDoList
+// Array of object for the FAQs content
+const TO_DO_FAQS = [
+  {
+    componentName: 'CommonAccordionItem',
+    directives: {},
+    display: {
+      label: 'Why use a To-do list',
+      description:
+        'Yes, writing down tasks on a To-Do list can reduce stress by decluttering your mind. Instead of trying to remember everything, you have a visual reminder of what needs to be done, allowing you to focus on completing tasks one at a time without feeling overwhelemed.'
+    }
+  },
+  {
+    componentName: 'CommonAccordionItem',
+    directives: {},
+    display: {
+      label: 'Can To-do list improve time management?',
+      description:
+        'It helps you allocate time more effectively by breaking down large projects into smaller tasks.'
+    }
+  },
+  {
+    componentName: 'CommonAccordionItem',
+    directives: {},
+    display: {
+      label: 'Does using a To-Do list reduce stress?',
+      description:
+        'It helps improve productivity and organization by giving you a clear structure of taks to complete. Enables better time management, reduces chances of forgetting important tasks, and provides sense of accomplishment when tasks are clicked off.'
+    }
+  }
+]
+
+export { TO_DO_FAQS }
