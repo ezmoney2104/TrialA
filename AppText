@@ -1,0 +1,57 @@
+<template>
+  <div>
+    <b-navbar toggleable="lg" type="dark" variant="dark" sticky="top" class="text-center">
+      <b-navbar-toggle target="navbar-toggle-collapse">
+        <i class="bi bi-list text-light"></i>
+      </b-navbar-toggle>
+
+      <b-collapse id="navbar-toggle-collapse" is-nav>
+        <b-navbar-nav class="ml-auto">
+          <b-navbar-brand v-for="(route, id) in route" :key="id">
+            <common-route-link :is="route.componentName" :key="id" :item="route" />
+          </b-navbar-brand>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
+
+    <router-view />
+  </div>
+</template>
+
+<script>
+import { ROUTES_PROPERTIES } from './common/recipe/rRoutes'
+import CommonRouteLink from './components/common/CommonRouteLink.vue'
+import HomeView from './components/pages/HomeView.vue'
+
+export default {
+  name: 'app',
+  components: {
+    HomeView,
+    CommonRouteLink
+  },
+  data() {
+    return {
+      route: [...ROUTES_PROPERTIES]
+    }
+  }
+}
+</script>
+
+<style scoped>
+.navbar {
+  justify-content: space-around !important;
+}
+
+.navbar-toggler {
+  border: none;
+  padding: none !important;
+}
+
+.navbar-toggler:hover {
+  border: 1px solid white;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+}
+</style>
