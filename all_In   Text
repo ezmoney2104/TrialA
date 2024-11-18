@@ -1,0 +1,787 @@
+// LogIn
+
+<template>
+  <div class="login-container d-flex justify-content-center align-items-center">
+    <b-card class="login-card">
+      <b-tabs v-model="activeTab">
+        <!-- Login Tab -->
+        <b-tab title="Login">
+          <b-form @submit.prevent="login">
+            <b-form-group label="Email" label-for="loginEmail">
+              <b-form-input
+                id="loginEmail"
+                v-model="loginForm.email"
+                placeholder="example@gmail.com"
+                type="email"
+                required
+              ></b-form-input>
+            </b-form-group>
+
+            <b-form-group label="Password" label-for="loginPassword">
+              <b-form-input
+                id="loginPassword"
+                v-model="loginForm.password"
+                type="password"
+                placeholder="********"
+                maxLength="16"
+                required
+              ></b-form-input>
+            </b-form-group>
+
+            <b-button type="submit" variant="primary" class="mt-3 w-100">Login</b-button>
+          </b-form>
+        </b-tab>
+
+        <!-- Register Tab -->
+        <b-tab title="Register">
+          <b-form @submit.prevent="validateNewUser">
+            <b-form-group label="Name" label-for="registerName">
+              <b-form-input
+                id="registerName"
+                v-model="registerForm.name"
+                type="text"
+                placeholder="Enter name here"
+                required
+                maxLength="10"
+              ></b-form-input>
+            </b-form-group>
+
+            <b-form-group label="Email" label-for="registerEmail">
+              <b-form-input
+                id="registerEmail"
+                v-model="registerForm.email"
+                type="email"
+                placeholder="example@gmail.com"
+                required
+                maxLength="25"
+              ></b-form-input>
+            </b-form-group>
+
+            <b-form-group label="Password" label-for="registerPassword">
+              <b-form-input
+                id="registerPassword"
+                v-model="registerForm.password"
+                type="password"
+                placeholder="********"
+                maxLength="16"
+                minLength="8"
+                required
+              ></b-form-input>
+            </b-form-group>
+
+            <b-button type="submit" variant="success" class="mt-3 w-100">Register</b-button>
+          </b-form>
+        </b-tab>
+      </b-tabs>
+    </b-card>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'LogInPage',
+  props: {
+    /**
+     * Receives the users array as a prop
+     */
+    users: {
+      type: Array,
+      required: true
+    }
+  },
+  data() {
+    return {
+      activeTab: 0, // To toggle between login and register
+      loginForm: {
+        email: '',
+        password: ''
+      },
+      registerForm: {
+        name: '',
+        email: '',
+        password: ''
+      }
+    }
+  },
+  methods: {
+    /**
+     * Emits the user details if the account is existing
+     */
+    login() {
+      // Find the user in the users array passed as a prop
+      const user = this.users.find(
+        (u) => u.email === this.loginForm.email && u.password === this.loginForm.password
+      )
+      if (user && this.loginForm.password.length >= 8 && this.loginForm.password.length <= 16) {
+        this.$emit('login-success', user)
+        alert('Login successful!')
+      } else {
+        this.resetLogInForm()
+        this.$emit('login-failed')
+        alert('Invalid login credentials!')
+      }
+    },
+    /**
+     * Validates the new user details
+     * @returns {Boolean} Run and return the binded action according to action
+     */
+    validateNewUser() {
+      const regEx = /\s/
+      const emailPattern = /^[a-z0-9._]+@[a-z0-9.-]+\.[a-z]{2,4}$/ // given email pattern
+      const { name, email, password } = this.registerForm
+
+      if (name.trim() === '') {
+        alert('Name should not be blank')
+        return false
+      }
+
+      if (!(email && email.length > 0)) {
+        alert('Please enter valid email.')
+        return false
+      } else if (!emailPattern.test(email)) {
+        alert('Invalid email format.')
+        return false
+      }
+
+      if (!(password.length >= 8 && password.length <= 16) || regEx.test(password)) {
+        alert('Password should be minimum of 8 and maximum of 16 characters long.')
+        return false
+      }
+
+      this.register()
+      return true
+    },
+    /**
+     * Emits the new user details if it is an existing user yet
+     * @returns {Void} Break function when validation is not met
+     */
+    register() {
+      // Check if the email already exists in the users array
+      const userExists = this.users.find((u) => u.email === this.registerForm.email)
+      if (!userExists) {
+        this.$emit('register', { ...this.registerForm })
+        alert('Account successfully registered!')
+        this.resetRegisterForm()
+        this.activeTab = 0 // Switch to login tab after registration
+      } else {
+        alert('User already exists!')
+        this.resetRegisterForm()
+        return
+      }
+    },
+
+    /**
+     * Resets the form for loginForm
+     */
+    resetLogInForm() {
+      this.loginForm = {
+        email: '',
+        password: ''
+      }
+    },
+    /**
+     * Resets the form for registerForm
+     */
+    resetRegisterForm() {
+      this.registerForm = {
+        email: '',
+        password: ''
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.login-container {
+  height: 100vh;
+  background-color: #f8f9fa;
+}
+.login-card {
+  width: 400px;
+  padding: 20px;
+}
+</style>
+
+
+//homeview
+
+<template>
+  <b-container class="my-5">
+    <h1 class="text-center">Welcome!</h1>
+
+    <div v-for="(app, index) in appList" :key="index">
+      <common-card :is="app.componentName" :key="app.index" :item="app"></common-card>
+    </div>
+  </b-container>
+</template>
+
+<script>
+import CommonCard from '../common/CommonCard.vue'
+import { APP_PROPERTIES } from '@/common/recipe/rApp'
+
+export default {
+  name: 'HomeView',
+  components: {
+    CommonCard
+  },
+  data() {
+    return {
+      appList: [...APP_PROPERTIES]
+    }
+  }
+}
+</script>
+
+
+// basecard
+
+<template>
+  <div>
+    <header>
+      <slot name="card-title"></slot>
+    </header>
+
+    <slot></slot>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'BaseCard'
+}
+</script>
+
+<style scoped>
+div {
+  height: auto;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+</style>
+
+// commbutton
+
+<template>
+  <div>
+    <b-button v-bind="item.directives" @click="emitButtonAction"
+      >{{ item.display.label }}
+    </b-button>
+  </div>
+</template>
+
+<script>
+import buttonMixins from '@/common/mixins/buttonMixins'
+export default {
+  name: 'CommonButton',
+  mixins: [buttonMixins]
+}
+</script>
+
+
+// common card
+
+<template>
+  <b-row class="mt-5">
+    <div class="app-card p-4 text-center d-grid gap-2">
+      <h5>{{ item.display.title }}</h5>
+      <p>{{ item.display.description }}</p>
+      <b-button v-bind="item.directives">{{ item.events.actionName }}</b-button>
+    </div>
+  </b-row>
+</template>
+
+<script>
+export default {
+  name: 'CommonCard',
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object data:
+     * - link {String} - the path of the component
+     * @object label:
+     * - title {String} - the title of the component
+     * - description {String} - brief description about the component
+     * @object event:
+     * - value {String} - the action name of the event
+     */
+    item: {
+      type: Object,
+      required: true
+    }
+  }
+}
+</script>
+
+<style>
+.app-card {
+  background-color: #ddd;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.app-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 5px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+// commonroutelink
+
+<template>
+  <router-link v-bind="item.directives">{{ item.display.title }}</router-link>
+</template>
+
+<script>
+export default {
+  name: 'CommonRouteLink',
+  /**
+   * @description
+   * Receives object of data
+   * * @object data:
+   * - href {Object} - the path name of the component
+   * @object label:
+   * - title {String} - the title of the component
+   */
+  props: {
+    item: {
+      type: Object,
+      required: true
+    }
+  }
+}
+</script>
+
+<style></style>
+
+// commontextinput
+
+<template>
+  <b-form-group>
+    <label :for="item.display.label" :style="item.directives">{{ item.display.label }}:</label>
+    <b-form-input
+      :id="item.display.label"
+      v-model="textInputData"
+      :placeholder="item.display.placeholder"
+      v-bind="item.directives"
+      required
+      trim
+      @keypress="checkIfKeyIsValid($event, item.directives.type, item.data.saveAs)"
+      @change="emitValue"
+    ></b-form-input>
+  </b-form-group>
+</template>
+
+<script>
+export default {
+  name: 'CommonTextInput',
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object properties:
+     * - readOnly {Boolean} - the state of the the textfield. Textfield focused upon clicking (default=false)
+     * - type {String} - the type of the textfield
+     * @object data:
+     * - key {String} - any key reference of the textfield
+     * @object label:
+     * - value {String} - the value of the label
+     * - placeholder {String} - any short hint to the user that describes the expected value of the input field
+     */
+    item: {
+      type: Object,
+      required: true
+    }
+  },
+  data() {
+    return {
+      textInputData: ''
+    }
+  },
+  methods: {
+    /**
+     * Check if the component data are valid based on the given regex
+     * @param {Object} event - The event object of the component
+     * @param {String} type - The data type of the component
+     * @param {String} saveAs - The name of the component as save as
+     */
+    checkIfKeyIsValid(event, type, saveAs) {
+      const regxText = /^[a-zA-Z]+$/
+      const regexNum = /^[0-9]+$/
+      const regexDecimal = /^[0-9.]+$/
+
+      if (type == 'text' && event.key != ' ' && !this.testInput(regxText, event.key)) {
+        event.preventDefault()
+      } else if (type == 'tel' && !this.testInput(regexNum, event.key)) {
+        event.preventDefault()
+      } else if (type == 'number' && saveAs == 'age' && !this.testInput(regexNum, event.key)) {
+        event.preventDefault()
+      } else if (type == 'number' && !this.testInput(regexDecimal, event.key)) {
+        event.preventDefault()
+      }
+    },
+    /**
+     * Tests the input data
+     * @param {String} regex - The regex pattern for the the text or number
+     * @param {String | Number} input - The input data from the user
+     * @return {boolean} - Returns whether the input character is valid(true) or invalid(false)
+     */
+    testInput(regex, input) {
+      return regex.test(input)
+    },
+    /**
+     * Pass the event and textinput data to the parent component Registration form
+     * @return {object} The event name, the textinput data key and data value
+     */
+    emitValue() {
+      return this.$emit('addValue', {
+        key: this.item.data.saveAs,
+        value: this.textInputData.trim()
+      })
+    }
+  }
+}
+</script>
+
+
+//rbutton
+const BUTTON_PROPERTIES = {
+  componentName: 'CommonButton',
+  data: {},
+  directives: {
+    type: 'submit',
+    variant: 'secondary',
+    class: 'w-100'
+  },
+  display: {
+    label: 'Add'
+  },
+  events: {
+    actionName: 'submitForm'
+  }
+}
+
+const SWITCH_BUTTON = [
+  {
+    componentName: 'CommonButton',
+    directives: {
+      variant: 'success',
+      class: 'mr-4'
+    },
+    display: {
+      label: 'RegForm'
+    },
+    events: {
+      actionName: 'showForm'
+    }
+  },
+
+  {
+    componentName: 'CommonButton',
+    directives: {
+      variant: 'info',
+      class: 'mr-4'
+    },
+    display: {
+      label: 'Lista de Amigos'
+    },
+    events: {
+      actionName: 'showFriends'
+    }
+  }
+]
+
+export { BUTTON_PROPERTIES, SWITCH_BUTTON }
+
+
+//rtextinput
+
+const TEXT_INPUT_PROPERTIES = [
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'fullname'
+    },
+    directives: {
+      class: 'mb-4',
+      type: 'text',
+      maxLength: 80,
+      readOnly: false
+    },
+    display: {
+      label: 'Fullname',
+      placeholder: 'Enter your fullname'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'nickname'
+    },
+    directives: {
+      type: 'text',
+      class: 'mb-4',
+      maxlength: 40,
+      readOnly: false
+    },
+    display: {
+      label: 'Nickname',
+      placeholder: 'Enter your nickname'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'birthdate'
+    },
+    directives: {
+      type: 'date',
+      class: 'mb-4',
+      readOnly: false,
+      max: '2006-12-31',
+      min: '1924-01-01'
+    },
+    display: {
+      label: 'Birthdate'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'age'
+    },
+    directives: {
+      type: 'number',
+      class: 'mb-4',
+      maxlength: 3,
+      readOnly: false
+    },
+    display: {
+      label: 'Age',
+      placeholder: 'Enter your age'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'address'
+    },
+    directives: {
+      type: 'text',
+      class: 'mb-4',
+      maxlength: 60,
+      readOnly: false
+    },
+    display: {
+      label: 'Address',
+      placeholder: 'Enter your address'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'email'
+    },
+    directives: {
+      type: 'email',
+      class: 'mb-4',
+      readOnly: false
+    },
+    display: {
+      label: 'Email',
+      placeholder: 'Enter your email address'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'phoneNumber'
+    },
+    directives: {
+      type: 'tel',
+      class: 'mb-4',
+      pattern: '[0]{1}[9]{1}[0-9]{9}',
+      maxlength: 11,
+      readOnly: false
+    },
+    display: {
+      label: 'Phone Number',
+      placeholder: '09XXXXXXXXX'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'favoriteColor'
+    },
+    directives: {
+      type: 'text',
+      class: 'mb-4',
+      maxlength: 15,
+      readOnly: false
+    },
+    display: {
+      label: 'Favorite Color',
+      placeholder: 'Enter your favorite color'
+    },
+    event: {}
+  },
+  {
+    componentName: 'CommonTextInput',
+    data: {
+      saveAs: 'favoriteFood'
+    },
+    directives: {
+      type: 'text',
+      class: 'mb-4',
+      maxlength: 15,
+      readOnly: false
+    },
+    display: {
+      label: 'Favorite Food',
+      placeholder: 'Enter your favorite food'
+    },
+    event: {}
+  }
+]
+
+export { TEXT_INPUT_PROPERTIES }
+
+// rRoutes
+
+const ROUTES_PROPERTIES = [
+  {
+    componentName: 'CommonRouteLink',
+    directives: {
+      to: {
+        name: 'home'
+      },
+      class: 'navbar-brand text-light'
+    },
+    display: {
+      title: 'Home'
+    }
+  },
+  {
+    componentName: 'CommonRouteLink',
+    directives: {
+      to: {
+        name: 'monster-slayer'
+      },
+      class: 'navbar-brand text-light'
+    },
+    display: {
+      title: 'Monster Slayer'
+    }
+  },
+  {
+    componentName: 'CommonRouteLink',
+    directives: {
+      to: {
+        name: 'libro-de-firmas'
+      },
+      class: 'navbar-brand text-light'
+    },
+    display: {
+      title: 'Libro De Firmas'
+    }
+  },
+  {
+    componentName: 'CommonRouteLink',
+    directives: {
+      to: {
+        name: 'bmi-comparison'
+      },
+      class: 'navbar-brand text-light'
+    },
+    display: {
+      title: 'BMI Comparison'
+    }
+  },
+  {
+    componentName: 'CommonRouteLink',
+    directives: {
+      to: {
+        name: 'to-do-app'
+      },
+      class: 'navbar-brand text-light'
+    },
+    display: {
+      title: 'To-Do App'
+    }
+  },
+  {
+    componentName: 'CommonRouteLink',
+    directives: {
+      to: {
+        name: 'bankist'
+      },
+      class: 'navbar-brand text-light'
+    },
+    display: {
+      title: 'Bankist'
+    }
+  },
+  {
+    componentName: 'CommonRouteLink',
+    directives: {
+      to: {
+        name: 'mapty'
+      },
+      class: 'navbar-brand text-light'
+    },
+    display: {
+      title: 'Mapty'
+    }
+  }
+]
+
+export { ROUTES_PROPERTIES }
+
+//buttonMixins
+
+export default {
+  props: {
+    /**
+     * @description
+     * Receives object of data
+     * @object properties:
+     * type {String} - the type of the textfield
+     * @object label:
+     * - value {String} - the value of the label
+     * @object event:
+     * - value {String} - the action name of the event
+     */
+    item: {
+      type: Object,
+      required: true
+    }
+  },
+  methods: {
+    /**
+     * Function used to pass event to the parent component when the button is clicked
+     * @return {*} The event and the action name being passed to the parent
+     */
+    emitButtonAction() {
+      return this.$emit('action', this.item.events.actionName)
+    }
+  }
+}
