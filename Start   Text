@@ -1,0 +1,228 @@
+// config
+
+import os  
+
+class Config:  
+    # General Flask Config  
+    SECRET_KEY = os.getenv('SECRET_KEY', 'my_secret_key')  
+    DEBUG = os.getenv('FLASK_ENV') == 'development'  
+      
+    # Database Config  
+    SQLALCHEMY_TRACK_MODIFICATIONS = False  
+  
+    # Primary Database  
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@db-nexus_app:5432/db_nexus_app')  
+  
+    # Secondary Database  
+    SQLALCHEMY_BINDS = {  
+        'warehouse': os.getenv('WAREHOUSE_DATABASE_URL', 'postgresql://postgres:postgres@db-nexus_app2:5433/db_nexus_app2')  
+    }  
+
+// init
+
+from flask_marshmallow import Marshmallow
+from src.app import app
+
+ma = Marshmallow(app)
+
+
+// database
+
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql import text
+from flask_migrate import Migrate, upgrade, init
+from time import sleep
+import os
+
+
+# Create instances of SQLAlchemy and Migrate
+db = SQLAlchemy()
+migrate = Migrate()
+
+
+def initialize_database(app):
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "DATABASE_URL", "postgresql://postgres:postgres@db-nexus_app:5432/db_nexus_app"
+    )
+    app.config["DEBUG"] = True
+    # app.config["SQLALCHEMY_BINDS"] = {"db2": "postgresql://postgres:postgres@db-nexus_app2:5432/db_nexus_app2"}
+
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    # Import your models here so they are registered with SQLAlchemy
+    # from src.setup_db_example.models.model import ExampleModel
+    # from src.setup_db_example.models.model2 import Product
+    # from src.setup_db_example.models.sample_model import SampleDb
+
+    from src.setup_db_example.puppy_co.models.user_model import UsersDb
+    from src.setup_db_example.puppy_co.models.puppy_model import PuppyDb
+    from src.setup_db_example.puppy_co.models.adoption_model import AdoptionDb
+
+    sleep(2)  # wait for 2 seconds for the TCP to be initialized
+
+    if not os.path.isdir("/usr/opt/nexus-app/backend/migrations"):
+        init()
+    print("Alembic Migration Initialized")
+    __upgrade_database__(app)
+
+
+def __upgrade_database__(app):
+    with app.app_context():
+        upgrade()
+        print("Database upgraded successfully.")
+
+
+// app
+
+import os
+from flask import Flask, Blueprint
+from flask_cors import CORS
+from src.setup_db_example.database import initialize_database
+from src.setup_db_example.api.test import one
+from src.setup_db_example.api.sample_api import sample_db_router
+
+
+def initialize_routing(app):
+
+    @app.route("/")
+    @app.route("/<path>")
+    def hello_world(path=""):
+        return app.redirect(f"http://localhost:8080/{path}")
+
+    @app.route("/api/test/<path>", methods=["GET"])
+    def test(path):
+        print("GASDFASDFASDFASDF", path)
+        return "success", 200
+
+
+def create_app():
+    app = Flask(__name__)
+    CORS(app)
+
+    app.register_blueprint(sample_db_router)
+
+    # Setup Database
+    initialize_database(app)
+
+    # Flask Routing
+    initialize_routing(app)
+
+    return app
+
+
+# Not necessary because the command is in the docker file
+# app.run(host="0.0.0.0", port=5000)
+
+//adoption_model
+
+from src.setup_db_example.database import db
+
+
+class AdoptionDb(db.Model):
+    __tablename__ = "adoptions_tbl"
+
+    adoption_id = db.Column(db.Integer, primary_key=True)
+    adopter_id = db.Column(
+        db.Integer, db.ForeignKey("users_tbl.user_id"), nullable=False
+    )
+    puppy_id = db.Column(
+        db.Integer, db.ForeignKey("puppies_tbl.puppy_id"), nullable=False
+    )
+    adoption_date = db.Column(db.Date, nullable=False)
+
+
+// user_model
+
+from src.setup_db_example.database import db
+
+
+class UsersDb(db.Model):
+    __tablename__ = "users_tbl"
+
+    user_id = db.Column(db.Integer, primary_key=True)
+    user_name = db.Column(db.String(40), nullable=False)
+    user_email = db.Column(db.String(30), nullable=False)
+    user_password = db.Column(db.String(16), nullable=False)
+    user_phoneNumber = db.Column(db.String(12), nullable=False)
+    user_address = db.Column(db.String(30), nullable=False)
+
+
+// puppy_model
+
+from src.setup_db_example.database import db
+
+
+class PuppyDb(db.Model):
+    __tablename__ = "puppies_tbl"
+
+    puppy_id = db.Column(db.Integer, primary_key=True)
+    puppy_name = db.Column(db.String(20), nullable=False)
+    puppy_breed = db.Column(db.String(30), nullable=False)
+    puppy_age = db.Column(db.Integer(8))
+    puppy_gender = db.Column(db.String(8), nullable=False)
+    puppy_size = db.Column(
+        db.String(3),
+    )
+    puppy_adopted_status = db.Column(db.Boolean, nullable=False)
+    previous_owner_id = db.Column(
+        db.Integer, db.ForeignKey("users_tbl.user_id"), nullable=False
+    )
+
+
+// user_schema
+
+from flask_marshmallow.fields import fields
+from src.setup_db_example.puppy_co.models.user_model import UsersDb
+from src.setup_db_example.puppy_co.schemas import ma
+
+
+class UserSchema(ma.SQLAlchemySchema):
+    """This class positions schema with the corresponding db table model"""
+
+    class Meta:
+        """Meta Class"""
+
+    model = UsersDb
+
+    user_id = fields.Integer()
+    user_name = fields.String()
+
+
+
+// sample_api
+
+from flask import Blueprint, request
+
+# Import db
+from src.setup_db_example.models.sample_model import SampleDb
+
+# Add routing
+sample_db_router = Blueprint("sample_api", __name__)
+
+
+# Add routing name for api method
+@sample_db_router.route("/api/get-sample", methods=["GET"])
+def sample_read():
+
+    return {
+        "message": "sample",
+    }
+
+
+####################
+
+import your model class in database.py 
+In app.py, import your api router
+Then register blueprint
+Attach shell on local_app relay container
+　enter flask shell
+　from src.setup_db_example.database import db
+　db.create_all()
+
+
+#####
+
+1. In the base-environment, run `make local-down; make local-build; make local-up;`2. On bash terminal, run `make local-psql1`3. Then, run `\dt`
