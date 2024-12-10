@@ -1,0 +1,16 @@
+class Factory:
+    def __init__(self):
+        db.drop_all()
+        db.create_all()
+        self.populate_operation()
+        self.populate_process()
+
+    def populate_operation(self):
+        operation_list = [
+            OperationInfo(category_name='稼働中', color_equivalent='GREEN'),
+            OperationInfo(category_name='準備中', color_equivalent='YELLOW'),
+            OperationInfo(category_name='異常発生中', color_equivalent='RED')
+        ]
+
+        db.session.bulk_save_objects(operation_list)
+        db.session.commit()
